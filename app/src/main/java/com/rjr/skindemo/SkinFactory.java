@@ -1,7 +1,9 @@
 package com.rjr.skindemo;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.support.v4.view.LayoutInflaterFactory;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -9,6 +11,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.rjr.skindemo.utils.SkinManager;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -69,7 +73,6 @@ public class SkinFactory implements LayoutInflaterFactory {
             // 获取attr属性名，像layout_width之类的
             String attrName = attrs.getAttributeName(i);
             String attrValue = attrs.getAttributeValue(i);
-//            Log.i(TAG, "parseSkinView: attrName = " + attrName + ", attrValue = " + attrValue);
             // 有以下属性的控件具备换肤的条件
             // android:textColor="@color/skin_text_color"，相当于一个SkinItem
             // android:attrName="resTypeName/resEntryName"
@@ -92,6 +95,7 @@ public class SkinFactory implements LayoutInflaterFactory {
         if (!list.isEmpty()) {
             SkinView skinView = new SkinView(context, view, list);
             cacheList.add(skinView);
+            skinView.apply();
         }
     }
 
@@ -107,15 +111,18 @@ public class SkinFactory implements LayoutInflaterFactory {
         try {
             Class<?> viewClass = getClass().getClassLoader().loadClass(name);
             Constructor<?> constructor = viewClass.getConstructor(new Class[]{Context.class, AttributeSet.class});
-            View view = (View) constructor.newInstance(context, attrs);
-
-
-            return view;
+            return (View) constructor.newInstance(context, attrs);
         } catch (Exception e) {
             e.printStackTrace();
 //            Log.e(TAG, "createView: ", e);
         }
         return null;
+    }
+
+    public void applySkin() {
+        for (SkinView skinView : cacheList) {
+            skinView.apply();
+        }
     }
 
     /**
@@ -127,7 +134,7 @@ public class SkinFactory implements LayoutInflaterFactory {
         private String resEntryName;  // 属性值类型名 skin_text_color
         private int resId;            // resources资源id
 
-        public SkinItem(String attrName, String resTypeName, String resEntryName, int resId) {
+        SkinItem(String attrName, String resTypeName, String resEntryName, int resId) {
             this.attrName = attrName;
             this.resTypeName = resTypeName;
             this.resEntryName = resEntryName;
@@ -155,24 +162,36 @@ public class SkinFactory implements LayoutInflaterFactory {
                     case BACKGROUND:
                         if (TextUtils.equals("color", item.resTypeName)) {
                             // background:@color
-                            view.setBackgroundColor(item.resId);
+                            view.setBackgroundColor(getColor(item.resId));
                         } else {
                             // background:@drawable
-                            view.setBackgroundDrawable(context.getDrawable(item.resId));
+                            view.setBackgroundDrawable(getDrawable(item.resId));
                         }
                         break;
                     case TEXT_COLOR:
                         if (view instanceof TextView) {
-                            ((TextView) view).setTextColor(item.resId);
+                            ((TextView) view).setTextColor(getColor(item.resId));
                         }
                         break;
                     case SRC:
                         if (view instanceof ImageView) {
-                            ((ImageView) view).setImageBitmap(BitmapFactory.decodeResource(context.getResources(), item.resId));
+                            ((ImageView) view).setImageBitmap(getSrcImageBitmap(item.resId));
                         }
                         break;
                 }
             }
+        }
+
+        private Bitmap getSrcImageBitmap(int resId) {
+            return SkinManager.getInstance(context).getSrcImageBitmap(resId);
+        }
+
+        private Drawable getDrawable(int resId) {
+            return SkinManager.getInstance(context).getDrawable(resId);
+        }
+
+        private int getColor(int resId) {
+            return SkinManager.getInstance(context).getColor(resId);
         }
     }
 }

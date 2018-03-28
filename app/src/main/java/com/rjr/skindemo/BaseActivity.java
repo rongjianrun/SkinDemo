@@ -11,9 +11,17 @@ import android.support.v4.view.LayoutInflaterCompat;
 
 public class BaseActivity extends Activity {
 
+    private SkinFactory mSkinFactory;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LayoutInflaterCompat.setFactory(getLayoutInflater(), new SkinFactory());
+        mSkinFactory = new SkinFactory();
+        LayoutInflaterCompat.setFactory(getLayoutInflater(), mSkinFactory);
+//        mSkinFactory.applySkin();
+    }
+
+    protected void switchSkin() {
+        mSkinFactory.applySkin();
     }
 }

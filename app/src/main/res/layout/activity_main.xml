@@ -42,4 +42,11 @@
         android:layout_marginTop="10dp"
         android:onClick="skinPeeler"
         android:text="一键换肤" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:onClick="jump"
+        android:text="跳转到第二个页面" />
 </LinearLayout>
